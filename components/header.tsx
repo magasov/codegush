@@ -22,6 +22,9 @@ export default function Header() {
   const { isAuth, user, handleLogout, isLoading } = useAuth();
 
   const handleLogoutWithToast = () => {
+    setTimeout(() => {
+      window.location.reload()
+    }, 3000)
     toast.promise(
       new Promise((resolve) => {
         handleLogout();
@@ -40,7 +43,7 @@ export default function Header() {
       <div className="container flex items-center justify-between h-[68px]">
         <div className="flex items-center gap-8 px-4">
           <Link href="/" className="text-xl font-bold">
-            Dev
+            PayFest
           </Link>
         </div>
 
