@@ -1,7 +1,23 @@
-# PayFest – планировщик маршрутов фестиваля
+<div align="center">
+  <br />
+    <a href="https://github.com/magasov" target="_blank">
+      <img src="./public/assets/images/banner.png" alt="Project Banner">
+    </a>
+  <br />
+ 
+  <p>
+    <code><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png" alt="react.js" height="30" /></code>
+    <code><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/2048px-Unofficial_JavaScript_logo_2.svg.png" alt="null" height="30" /></code>
+    <code><img src="https://camo.githubusercontent.com/e84d110dc8fc6125b9138856352724ba0f8f6b86ec6ac91961669d407fd71e24/68747470733a2f2f63646e2d69636f6e732d706e672e666c617469636f6e2e636f6d2f3531322f353936382f353936383335382e706e67" alt="null" height="30" /></code>
+  </p>
+  <h1 align="center">PaveFest</h1>
 
-Интерактивное веб-приложение для планирования посещения фестиваля: выбирайте события, стройте удобный маршрут на день и следите за своей программой в одном месте.  
+   <div align="center">
+    Интерактивное веб-приложение для планирования посещения фестиваля: выбирайте события, стройте удобный маршрут на день и следите за своей программой в одном месте.  
 Приложение работает полностью в браузере и хранит данные пользователя в `localStorage`, поэтому для демо-запуска не нужен отдельный бэкенд или база данных.
+    </div>
+</div>
+
 
 ---
 
@@ -48,9 +64,6 @@
 - **npm** (по умолчанию) или любая другая пакетная система:
   - `npm` / `yarn` / `pnpm`
 
-> В репозитории есть файл `.env` с примерной строкой подключения к PostgreSQL,  
-> но в текущей версии проекта база данных напрямую **не используется**.  
-> Для локального запуска ничего дополнительно настраивать не нужно.
 
 ---
 
@@ -59,8 +72,8 @@
 ### 1. Клонирование репозитория / распаковка архива
 
 ```bash
-git clone <ваш-URL-репозитория> payfest
-cd payfest
+git clone https://github.com/magasov/codegush
+cd codegush
 ```
 
 Или просто распакуйте архив в папку `codegush/` и перейдите в неё:
@@ -191,52 +204,6 @@ codegush/
      - Загрузить аватар.
      - Экспортировать профиль в JSON.
      - Очистить локальные данные.
-
----
-
-## Скриншоты
-
-> ⚠️ Скриншоты вы добавите сами. Ниже отмечены места, куда их можно вставить.  
-> Рекомендуется создать папку `public/screenshots/` и положить туда изображения.
-
-### Главная страница
-
-<!-- TODO: добавить файл, например public/screenshots/home.png -->
-![Главная страница](./public/screenshots/home.png)
-
----
-
-### Список событий
-
-<!-- TODO: добавить файл, например public/screenshots/events.png -->
-![Список событий](./public/screenshots/events.png)
-
----
-
-### Планировщик маршрутов
-
-<!-- TODO: добавить файл, например public/screenshots/planner.png -->
-![Планировщик маршрутов](./public/screenshots/planner.png)
-
----
-
-### Профиль пользователя
-
-<!-- TODO: добавить файл, например public/screenshots/profile.png -->
-![Профиль пользователя](./public/screenshots/profile.png)
-
----
-
-## Полезные скрипты
-
-В `package.json` доступны стандартные скрипты:
-
-```bash
-npm run dev      # запуск dev-сервера
-npm run build    # production-сборка
-npm start        # запуск production-сервера
-npm run lint     # проверка кода линтером
-```
 
 ---
 
