@@ -90,7 +90,7 @@ export default function Footer() {
                 </div>
                 <div>
                 <span className="text-xl font-bold text-black">
-                    PayFest
+                    PaveFest
                 </span>
                 <p className="text-xs text-muted-foreground">Генератор маршрутов</p>
                 </div>
@@ -175,7 +175,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Копирайт */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>© {currentYear} PayFest. Все права защищены.</span>
+              <span>© {currentYear} PaveFest. Все права защищены.</span>
             </div>
 
             {/* Правовые ссылки */}

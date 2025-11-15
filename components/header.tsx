@@ -43,7 +43,7 @@ export default function Header() {
       <div className="container flex items-center justify-between h-[68px]">
         <div className="flex items-center gap-8 px-4">
           <Link href="/" className="text-xl font-bold">
-            PayFest
+            PaveFest
           </Link>
         </div>
 
