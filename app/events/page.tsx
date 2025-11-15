@@ -44,91 +44,163 @@ export default function EventsPage() {
   const [plannedEvents, setPlannedEvents] = useState<PlannedEvent[]>([]);
   const router = useRouter();
 
-  // Mock данные событий
-  const events: Event[] = [
-    {
-      id: "1",
-      title: "Концерт группы 'Ветер'",
-      description: "Выступление популярной рок-группы на главной сцене",
-      date: "2024-06-15",
-      time: "14:00",
-      duration: 90,
-      location: "Главная сцена",
-      category: "music",
-      popularity: 95,
-      image: "/api/placeholder/400/200"
-    },
-    {
-      id: "2",
-      title: "Мастер-класс по танцам",
-      description: "Обучение современным танцевальным направлениям",
-      date: "2024-06-15",
-      time: "16:00",
-      duration: 60,
-      location: "Палатка №2",
-      category: "workshop",
-      popularity: 80,
-      image: "/api/placeholder/400/200"
-    },
-    {
-      id: "3",
-      title: "Кинопоказ под открытым небом",
-      description: "Просмотр фильма на большом экране в вечерней атмосфере",
-      date: "2024-06-15",
-      time: "19:00",
-      duration: 90,
-      location: "Лужайка",
-      category: "cinema",
-      popularity: 85,
-      image: "/api/placeholder/400/200"
-    },
-    {
-      id: "4",
-      title: "Фуд-корт: Гастрономический тур",
-      description: "Дегустация блюд от лучших шеф-поваров фестиваля",
-      date: "2024-06-15",
-      time: "17:30",
-      duration: 60,
-      location: "Центральная площадь",
-      category: "food",
-      popularity: 90,
-      image: "/api/placeholder/400/200"
-    },
-    {
-      id: "5",
-      title: "Арт-инсталляция 'Свет и Тень'",
-      description: "Интерактивная световая инсталляция от современных художников",
-      date: "2024-06-15",
-      time: "15:00",
-      duration: 120,
-      location: "Арт-зона",
-      category: "art",
-      popularity: 75,
-      image: "/api/placeholder/400/200"
-    },
-    {
-      id: "6",
-      title: "Йога на рассвете",
-      description: "Утренняя практика йоги для заряда энергии на весь день",
-      date: "2024-06-16",
-      time: "06:00",
-      duration: 60,
-      location: "Лужайка",
-      category: "sport",
-      popularity: 70,
-      image: "/api/placeholder/400/200"
-    }
-  ];
+// Mock данные событий
+const events: Event[] = [
+  {
+    id: "1",
+    title: "Концерт группы 'Ветер'",
+    description: "Выступление популярной рок-группы на главной сцене с новым альбомом",
+    date: "2024-06-15",
+    time: "14:00",
+    duration: 90,
+    location: "Главная сцена",
+    category: "music",
+    popularity: 95,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "2",
+    title: "Мастер-класс по танцам",
+    description: "Обучение современным танцевальным направлениям от профессиональных хореографов",
+    date: "2024-06-15",
+    time: "16:00",
+    duration: 60,
+    location: "Палатка №2",
+    category: "workshop",
+    popularity: 80,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "3",
+    title: "Кинопоказ под открытым небом",
+    description: "Просмотр фильма на большом экране в вечерней атмосфере с попкорном и напитками",
+    date: "2024-06-15",
+    time: "19:00",
+    duration: 90,
+    location: "Лужайка",
+    category: "cinema",
+    popularity: 85,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "4",
+    title: "Фуд-корт: Гастрономический тур",
+    description: "Дегустация блюд от лучших шеф-поваров фестиваля со всего мира",
+    date: "2024-06-15",
+    time: "17:30",
+    duration: 60,
+    location: "Центральная площадь",
+    category: "food",
+    popularity: 90,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "5",
+    title: "Арт-инсталляция 'Свет и Тень'",
+    description: "Интерактивная световая инсталляция от современных художников с VR-элементами",
+    date: "2024-06-15",
+    time: "15:00",
+    duration: 120,
+    location: "Арт-зона",
+    category: "art",
+    popularity: 75,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "6",
+    title: "Йога на рассвете",
+    description: "Утренняя практика йоги для заряда энергии на весь день с сертифицированным инструктором",
+    date: "2024-06-16",
+    time: "06:00",
+    duration: 60,
+    location: "Лужайка",
+    category: "sport",
+    popularity: 70,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "7",
+    title: "DJ-сет 'Электронные вибрации'",
+    description: "Зажигательный сет от лучших диджеев города на специально оборудованной площадке",
+    date: "2024-06-15",
+    time: "21:00",
+    duration: 120,
+    location: "Танцпол",
+    category: "music",
+    popularity: 88,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "8",
+    title: "Воркшоп по каллиграфии",
+    description: "Искусство красивого письма: от основ до продвинутых техник под руководством мастера",
+    date: "2024-06-16",
+    time: "11:00",
+    duration: 90,
+    location: "Творческая мастерская",
+    category: "workshop",
+    popularity: 72,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "9",
+    title: "Кулинарный баттл шеф-поваров",
+    description: "Соревнование между известными шефами с дегустацией блюд для зрителей",
+    date: "2024-06-16",
+    time: "13:00",
+    duration: 75,
+    location: "Кулинарная арена",
+    category: "food",
+    popularity: 92,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "10",
+    title: "Уличный театр 'Карнавал масок'",
+    description: "Яркое представление уличного театра с интерактивными элементами и костюмированным шествием",
+    date: "2024-06-15",
+    time: "18:30",
+    duration: 60,
+    location: "Центральная аллея",
+    category: "art",
+    popularity: 78,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "11",
+    title: "Пробежка 'Здоровое утро'",
+    description: "Групповая пробежка по территории парка с фитнес-инструктором и разминкой",
+    date: "2024-06-16",
+    time: "07:30",
+    duration: 45,
+    location: "Старт у главного входа",
+    category: "sport",
+    popularity: 65,
+    image: "/api/placeholder/400/200"
+  },
+  {
+    id: "12",
+    title: "Ночное кино под звездами",
+    description: "Показ культового фильма на большом экране с уютными пледами и горячими напитками",
+    date: "2024-06-16",
+    time: "22:00",
+    duration: 120,
+    location: "Вечерний амфитеатр",
+    category: "cinema",
+    popularity: 82,
+    image: "/api/placeholder/400/200"
+  }
+];
 
-  const categories = [
-    { value: "all", label: "Все категории" },
-    { value: "music", label: "Музыка" },
-    { value: "workshop", label: "Мастер-классы" },
-    { value: "cinema", label: "Кино" },
-    { value: "food", label: "Еда" },
-    { value: "art", label: "Искусство" },
-    { value: "sport", label: "Спорт" }
-  ];
+const categories = [
+  { value: "all", label: "Все категории" },
+  { value: "music", label: "Музыка" },
+  { value: "workshop", label: "Мастер-классы" },
+  { value: "cinema", label: "Кино" },
+  { value: "food", label: "Еда" },
+  { value: "art", label: "Искусство" },
+  { value: "sport", label: "Спорт" }
+];
 
   useEffect(() => {
     // Проверяем наличие пользователя в localStorage
