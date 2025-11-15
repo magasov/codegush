@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Clock, Users, Route, Trash2, Plus, Share2, Download, ChevronRight, Star, Check, X, BarChart3, User, UserPlus, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, Route, Trash2, Plus, Share2, Download, ChevronRight, Star, Check, X, BarChart3, User, UserPlus, Loader2, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import toast from "react-hot-toast";
+import { routeAI } from "@/lib/route-ai-service";
 
 interface User {
   id: string;
@@ -73,18 +74,13 @@ interface RouteStats {
   efficiency: number;
 }
 
-// Реальные адреса Москвы с координатами для расчета маршрутов
+// Реальные адреса Москвы
 const moscowLocations = [
   { address: "Красная площадь, 1", coordinates: [55.7539, 37.6208] },
   { address: "ул. Арбат, 25", coordinates: [55.7496, 37.5904] },
   { address: "Парк Горького, Крымский вал, 9", coordinates: [55.7280, 37.6030] },
   { address: "ВДНХ, проспект Мира, 119", coordinates: [55.8296, 37.6318] },
-  { address: "Москва-Сити, Пресненская наб., 8", coordinates: [55.7496, 37.5394] },
-  { address: "Центральный детский магазин, Театральный пр-д, 5", coordinates: [55.7600, 37.6190] },
-  { address: "ГУМ, Красная площадь, 3", coordinates: [55.7547, 37.6218] },
-  { address: "Большой театр, Театральная площадь, 1", coordinates: [55.7601, 37.6185] },
-  { address: "Парк Зарядье, ул. Варварка, 6", coordinates: [55.7514, 37.6270] },
-  { address: "Музей Москвы, Зубовский бульвар, 2", coordinates: [55.7360, 37.5950] }
+  { address: "Москва-Сити, Пресненская наб., 8", coordinates: [55.7496, 37.5394] }
 ];
 
 export default function PlannerPage() {
@@ -98,129 +94,59 @@ export default function PlannerPage() {
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isAIRouteGenerating, setIsAIRouteGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState("");
   const [currentStepDescription, setCurrentStepDescription] = useState("");
+  const [useAI, setUseAI] = useState(true);
   const router = useRouter();
 
-  // Mock данные событий для предложений с московскими адресами
+  // Mock данные событий
   const mockEvents: Event[] = [
     {
-      id: "1",
-      title: "Концерт группы 'Ветер'",
-      description: "Выступление популярной рок-группы на главной сцене",
-      date: "2024-06-15",
-      time: "14:00",
-      duration: 90,
-      location: "Красная площадь, 1",
-      category: "music",
-      popularity: 95,
-      image: "/api/placeholder/400/200",
-      price: 1500,
-      maxParticipants: 5000
+      id: "1", title: "Концерт группы 'Ветер'", description: "Выступление популярной рок-группы", date: "2024-06-15", time: "14:00", duration: 90, location: "Красная площадь, 1", category: "music", popularity: 95, price: 1500
     },
     {
-      id: "2",
-      title: "Мастер-класс по танцам",
-      description: "Обучение современным танцевальным направлениям",
-      date: "2024-06-15",
-      time: "16:00",
-      duration: 60,
-      location: "Парк Горького, Крымский вал, 9",
-      category: "workshop",
-      popularity: 80,
-      image: "/api/placeholder/400/200",
-      price: 500,
-      maxParticipants: 30
+      id: "2", title: "Мастер-класс по танцам", description: "Обучение современным танцевальным направлениям", date: "2024-06-15", time: "16:00", duration: 60, location: "Парк Горького, Крымский вал, 9", category: "workshop", popularity: 80, price: 500
     },
     {
-      id: "3",
-      title: "Кинопоказ под открытым небом",
-      description: "Просмотр фильма на большом экране в вечерней атмосфере",
-      date: "2024-06-15",
-      time: "19:00",
-      duration: 90,
-      location: "Парк Сокольники, ул. Сокольнический вал, 1",
-      category: "cinema",
-      popularity: 85,
-      image: "/api/placeholder/400/200",
-      price: 300,
-      maxParticipants: 200
+      id: "3", title: "Кинопоказ под открытым небом", description: "Просмотр фильма на большом экране", date: "2024-06-15", time: "19:00", duration: 90, location: "Парк Сокольники", category: "cinema", popularity: 85, price: 300
     },
     {
-      id: "4",
-      title: "Фуд-корт: Гастрономический тур",
-      description: "Дегустация блюд от лучших шеф-поваров фестиваля",
-      date: "2024-06-15",
-      time: "17:30",
-      duration: 60,
-      location: "ул. Арбат, 25",
-      category: "food",
-      popularity: 90,
-      image: "/api/placeholder/400/200",
-      price: 800
+      id: "4", title: "Фуд-корт: Гастрономический тур", description: "Дегустация блюд от лучших шеф-поваров", date: "2024-06-15", time: "17:30", duration: 60, location: "ул. Арбат, 25", category: "food", popularity: 90, price: 800
     },
     {
-      id: "5",
-      title: "Выставка современного искусства",
-      description: "Работы молодых художников и скульпторов",
-      date: "2024-06-15",
-      time: "15:00",
-      duration: 45,
-      location: "ЦДХ, Крымский вал, 10",
-      category: "art",
-      popularity: 75,
-      image: "/api/placeholder/400/200",
-      price: 400,
-      maxParticipants: 100
+      id: "5", title: "Выставка современного искусства", description: "Работы молодых художников и скульпторов", date: "2024-06-15", time: "15:00", duration: 45, location: "ЦДХ, Крымский вал, 10", category: "art", popularity: 75, price: 400
     },
     {
-      id: "6",
-      title: "Йога на рассвете",
-      description: "Утренняя практика йоги для заряда энергии",
-      date: "2024-06-15",
-      time: "11:00",
-      duration: 60,
-      location: "Воробьевы горы, Университетская площадь, 1",
-      category: "sport",
-      popularity: 70,
-      image: "/api/placeholder/400/200",
-      price: 0,
-      maxParticipants: 50
+      id: "6", title: "Йога на рассвете", description: "Утренняя практика йоги", date: "2024-06-15", time: "11:00", duration: 60, location: "Воробьевы горы", category: "sport", popularity: 70, price: 0
+    },
+    {
+      id: "7", title: "Экскурсия по Кремлю", description: "Знакомство с историей Московского Кремля", date: "2024-06-15", time: "10:00", duration: 120, location: "Московский Кремль", category: "culture", popularity: 92, price: 1000
+    },
+    {
+      id: "8", title: "Прогулка на теплоходе", description: "Прогулка по Москве-реке с видом на достопримечательности", date: "2024-06-15", time: "13:00", duration: 90, location: "причал Устьинский", category: "recreation", popularity: 88, price: 600
+    },
+    {
+      id: "9", title: "Шоппинг в ГУМе", description: "Посещение исторического торгового центра", date: "2024-06-15", time: "12:00", duration: 120, location: "Красная площадь, 3", category: "shopping", popularity: 78, price: 0
+    },
+    {
+      id: "10", title: "Вечер в Большом театре", description: "Посещение балетного представления", date: "2024-06-15", time: "19:30", duration: 150, location: "Театральная площадь, 1", category: "theater", popularity: 96, price: 2000
+    },
+    {
+      id: "11", title: "Фотосессия в Парке Горького", description: "Профессиональная фотосессия в iconic местах", date: "2024-06-15", time: "16:30", duration: 60, location: "Парк Горького", category: "photo", popularity: 82, price: 1200
+    },
+    {
+      id: "12", title: "Дегустация в винном баре", description: "Знакомство с российскими винами", date: "2024-06-15", time: "20:00", duration: 90, location: "ул. Пятницкая, 15", category: "food", popularity: 85, price: 1500
     }
   ];
 
   const routeGenerationSteps: RouteGenerationStep[] = [
-    {
-      title: "Анализируем локации...",
-      description: "Определяем оптимальную последовательность посещения",
-      duration: 1000
-    },
-    {
-      title: "Рассчитываем маршруты...",
-      description: "Строим пешеходные и транспортные маршруты",
-      duration: 1200
-    },
-    {
-      title: "Учитываем транспорт...",
-      description: "Анализируем доступность метро и наземного транспорта",
-      duration: 800
-    },
-    {
-      title: "Проверяем время работы...",
-      description: "Убеждаемся, что все места будут открыты",
-      duration: 600
-    },
-    {
-      title: "Оптимизируем последовательность...",
-      description: "Создаем комфортный график посещения",
-      duration: 900
-    },
-    {
-      title: "Формируем варианты маршрутов...",
-      description: "Готовим лучшие варианты для выбора",
-      duration: 700
-    }
+    { title: "Анализируем мероприятия...", description: "Оцениваем популярность и длительность", duration: 1000 },
+    { title: "Формируем варианты...", description: "Создаем маршруты разной продолжительности", duration: 1200 },
+    { title: "Оптимизируем время...", description: "Расставляем мероприятия в оптимальном порядке", duration: 900 },
+    { title: "Учитываем логистику...", description: "Рассчитываем время перемещений", duration: 800 },
+    { title: "Финальная проверка...", description: "Убеждаемся в реалистичности маршрутов", duration: 600 }
   ];
 
   useEffect(() => {
@@ -342,10 +268,6 @@ export default function PlannerPage() {
     
     localStorage.setItem(`planner_${user.id}`, JSON.stringify(updatedEvents));
 
-    if (updatedEvents.length >= 2) {
-      setTimeout(() => generateRouteVariants(), 500);
-    }
-
     toast.success(`"${event.title}" добавлено в маршрут!`);
   };
 
@@ -356,10 +278,6 @@ export default function PlannerPage() {
     
     if (user) {
       localStorage.setItem(`planner_${user.id}`, JSON.stringify(updatedEvents));
-    }
-
-    if (updatedEvents.length >= 2) {
-      setTimeout(() => generateRouteVariants(), 500);
     }
 
     if (eventToRemove) {
@@ -376,16 +294,11 @@ export default function PlannerPage() {
     if (user) {
       localStorage.setItem(`planner_${user.id}`, JSON.stringify(updatedEvents));
     }
-
-    if (updatedEvents.length >= 2) {
-      setTimeout(() => generateRouteVariants(), 500);
-    }
   };
 
   const calculateTravelTime = (current: Event, previous?: Event): number => {
     if (!previous) return 0;
     
-    // Имитация расчета времени на основе "удаленности" адресов
     const getLocationComplexity = (location: string) => {
       if (location.includes("Красная площадь")) return 1;
       if (location.includes("Арбат")) return 2;
@@ -398,7 +311,7 @@ export default function PlannerPage() {
     const previousComplexity = getLocationComplexity(previous.location);
     const complexityDiff = Math.abs(currentComplexity - previousComplexity);
     
-    return Math.floor(Math.random() * 15) + 5 + (complexityDiff * 3);
+    return Math.floor(Math.random() * 20) + 10 + (complexityDiff * 3);
   };
 
   const calculateTotalTime = (events: PlannedEvent[]) => {
@@ -421,137 +334,70 @@ export default function PlannerPage() {
     setGenerationProgress(100);
   };
 
-  const generateTimeOptimizedVariant = (events: PlannedEvent[]): RouteVariant => {
-    const fixedEvents = events.filter(event => event.isFixed);
-    const flexibleEvents = events.filter(event => !event.isFixed);
+  // Новая функция для AI генерации маршрутов
+  const generateAIRoutes = async () => {
+    if (plannedEvents.length < 3) {
+      toast.error("Добавьте хотя бы 3 мероприятия для AI планирования");
+      return;
+    }
 
-    const optimizedEvents = [...fixedEvents, ...flexibleEvents].sort((a, b) => {
-      const timeA = parseInt(a.time.replace(':', ''));
-      const timeB = parseInt(b.time.replace(':', ''));
-      return timeA - timeB;
-    }).map((event, index, array) => ({
-      ...event,
-      order: index,
-      travelTime: index > 0 ? calculateTravelTime(event, array[index - 1]) : 0
-    }));
+    setIsAIRouteGenerating(true);
+    setCurrentStep("AI анализирует мероприятия...");
+    setCurrentStepDescription("Создаем разные варианты маршрутов");
+    
+    try {
+      const request = {
+        events: plannedEvents.map(event => ({
+          id: event.id,
+          title: event.title,
+          duration: event.duration,
+          location: event.location,
+          category: event.category,
+          popularity: event.popularity,
+          time: event.time
+        })),
+        constraints: {
+          startTime: "09:00",
+          endTime: "22:00", 
+          maxTotalTime: 780 // 13 часов
+        }
+      };
 
-    const totalTime = calculateTotalTime(optimizedEvents);
-    const travelTime = optimizedEvents.reduce((total, event) => total + event.travelTime, 0);
-
-    return {
-      id: "time-optimized",
-      name: "Оптимальный по времени",
-      events: optimizedEvents,
-      totalTime,
-      travelTime,
-      eventCount: optimizedEvents.length,
-      score: calculateRouteScore(optimizedEvents, 'time'),
-      description: "Минимальное время ожидания между событиями",
-      advantages: [
-        "Минимальное время в пути",
-        "Эффективное использование времени",
-        "Оптимальная последовательность"
-      ],
-      disadvantages: [
-        "Может не учитывать популярность мест",
-        "Менее гибкий для спонтанных изменений"
-      ]
-    };
-  };
-
-  const generatePopularityOptimizedVariant = (events: PlannedEvent[]): RouteVariant => {
-    const popularityOptimized = [...events].sort((a, b) => b.popularity - a.popularity)
-      .map((event, index, array) => ({
-        ...event,
-        order: index,
-        travelTime: index > 0 ? calculateTravelTime(event, array[index - 1]) : 0
+      const aiGeneratedRoutes = await routeAI.generateRouteVariants(request);
+      
+      // Конвертируем AI маршруты в наш формат
+      const convertedRoutes: RouteVariant[] = aiGeneratedRoutes.map(aiRoute => ({
+        ...aiRoute,
+        events: aiRoute.events.map(aiEvent => {
+          const originalEvent = plannedEvents.find(e => e.id === aiEvent.id);
+          if (!originalEvent) return aiEvent;
+          
+          return {
+            ...originalEvent,
+            plannedTime: aiEvent.plannedTime,
+            travelTime: aiEvent.travelTime,
+            order: aiEvent.order,
+            addedBy: originalEvent.addedBy,
+            isFixed: originalEvent.isFixed
+          };
+        }).filter(Boolean) as PlannedEvent[],
+        eventCount: aiRoute.events.length
       }));
 
-    const totalTime = calculateTotalTime(popularityOptimized);
-    const travelTime = popularityOptimized.reduce((total, event) => total + event.travelTime, 0);
+      setRouteVariants(convertedRoutes);
+      setShowComparison(true);
+      toast.success("🧠 AI создал 3 варианта маршрута!");
 
-    return {
-      id: "popularity-optimized",
-      name: "По популярности",
-      events: popularityOptimized,
-      totalTime,
-      travelTime,
-      eventCount: popularityOptimized.length,
-      score: calculateRouteScore(popularityOptimized, 'popularity'),
-      description: "Самые популярные события в начале дня",
-      advantages: [
-        "Начинается с самых интересных мест",
-        "Учитывает рейтинги и отзывы",
-        "Популярные места посещаются в лучшее время"
-      ],
-      disadvantages: [
-        "Может быть больше времени в пути",
-        "Пиковые часы посещения"
-      ]
-    };
-  };
-
-  const generateBalancedVariant = (events: PlannedEvent[]): RouteVariant => {
-    const categoryOrder = ["music", "workshop", "food", "cinema", "art", "sport"];
-    const balanced = [...events].sort((a, b) => {
-      const aIndex = categoryOrder.indexOf(a.category);
-      const bIndex = categoryOrder.indexOf(b.category);
-      return aIndex - bIndex;
-    }).map((event, index, array) => ({
-      ...event,
-      order: index,
-      travelTime: index > 0 ? calculateTravelTime(event, array[index - 1]) : 0
-    }));
-
-    const totalTime = calculateTotalTime(balanced);
-    const travelTime = balanced.reduce((total, event) => total + event.travelTime, 0);
-
-    return {
-      id: "balanced",
-      name: "Сбалансированный",
-      events: balanced,
-      totalTime,
-      travelTime,
-      eventCount: balanced.length,
-      score: calculateRouteScore(balanced, 'balanced'),
-      description: "Разнообразие активностей в течение дня",
-      advantages: [
-        "Разнообразие типов активностей",
-        "Сбалансированная нагрузка",
-        "Подходит для разных интересов"
-      ],
-      disadvantages: [
-        "Не всегда оптимален по времени",
-        "Может требовать больше перемещений"
-      ]
-    };
-  };
-
-  const calculateRouteScore = (events: PlannedEvent[], type: 'time' | 'popularity' | 'balanced'): number => {
-    let score = 80; // Базовый балл
-    
-    if (type === 'time') {
-      const totalTravelTime = events.reduce((sum, event) => sum + event.travelTime, 0);
-      const avgTravelTime = totalTravelTime / Math.max(1, events.length - 1);
-      const efficiency = Math.max(0, 100 - (avgTravelTime * 2));
-      score += efficiency * 0.15;
-    } else if (type === 'popularity') {
-      const avgPopularity = events.reduce((sum, event) => sum + event.popularity, 0) / events.length;
-      score += (avgPopularity - 80) * 0.2;
-    } else {
-      // balanced
-      const categories = new Set(events.map(event => event.category));
-      const diversityBonus = (categories.size / events.length) * 20;
-      score += diversityBonus;
+    } catch (error) {
+      console.error("AI route generation failed:", error);
+      toast.error("Не удалось сгенерировать маршруты через AI. Используем стандартную логику.");
+      await generateRouteVariants();
+    } finally {
+      setIsAIRouteGenerating(false);
     }
-    
-    // Бонус за фиксированные события
-    const fixedEventsCount = events.filter(event => event.isFixed).length;
-    score += fixedEventsCount * 2;
-    
-    return Math.min(98, Math.round(score));
   };
 
+  // Стандартная генерация маршрутов
   const generateRouteVariants = async () => {
     if (plannedEvents.length < 2) {
       if (plannedEvents.length === 1) {
@@ -562,15 +408,149 @@ export default function PlannerPage() {
 
     await simulateRouteGeneration();
 
+    // Создаем 3 варианта с разным количеством мероприятий
     const variants: RouteVariant[] = [
-      generateTimeOptimizedVariant(plannedEvents),
-      generatePopularityOptimizedVariant(plannedEvents),
-      generateBalancedVariant(plannedEvents)
+      generateShortRoute(plannedEvents),
+      generateMediumRoute(plannedEvents),
+      generateFullRoute(plannedEvents)
     ].filter(Boolean) as RouteVariant[];
 
     setRouteVariants(variants);
     setShowComparison(true);
     toast.success("Маршрут успешно сгенерирован!");
+  };
+
+  // Короткий маршрут (3-4 мероприятия)
+  const generateShortRoute = (events: PlannedEvent[]): RouteVariant => {
+    const shortEvents = [...events]
+      .sort((a, b) => b.popularity - a.popularity)
+      .slice(0, 4)
+      .map((event, index, array) => ({
+        ...event,
+        order: index,
+        plannedTime: calculateTime("10:00", index),
+        travelTime: index > 0 ? calculateTravelTime(event, array[index - 1]) : 0
+      }));
+
+    const totalTime = calculateTotalTime(shortEvents);
+    const travelTime = shortEvents.reduce((total, event) => total + event.travelTime, 0);
+
+    return {
+      id: "short-route",
+      name: "Короткий интенсив",
+      events: shortEvents,
+      totalTime,
+      travelTime,
+      eventCount: shortEvents.length,
+      score: 85,
+      description: "3-4 самых популярных мероприятия за 3-4 часа",
+      advantages: [
+        "Максимум впечатлений за короткое время",
+        "Минимум усталости",
+        "Только лучшие места"
+      ],
+      disadvantages: [
+        "Мало мероприятий",
+        "Не охватывает весь день"
+      ]
+    };
+  };
+
+  // Средний маршрут (5-7 мероприятий)
+  const generateMediumRoute = (events: PlannedEvent[]): RouteVariant => {
+    const mediumEvents = [...events]
+      .sort((a, b) => {
+        // Смешиваем популярность и разнообразие категорий
+        const categoryBonus = new Set(events.map(e => e.category)).size / events.length;
+        return (b.popularity * 0.7 + categoryBonus * 30) - (a.popularity * 0.7 + categoryBonus * 30);
+      })
+      .slice(0, 6)
+      .map((event, index, array) => ({
+        ...event,
+        order: index,
+        plannedTime: calculateTime("09:30", index),
+        travelTime: index > 0 ? calculateTravelTime(event, array[index - 1]) : 0
+      }));
+
+    const totalTime = calculateTotalTime(mediumEvents);
+    const travelTime = mediumEvents.reduce((total, event) => total + event.travelTime, 0);
+
+    return {
+      id: "medium-route",
+      name: "Сбалансированный день",
+      events: mediumEvents,
+      totalTime,
+      travelTime,
+      eventCount: mediumEvents.length,
+      score: 90,
+      description: "5-6 разнообразных мероприятий на 5-6 часов",
+      advantages: [
+        "Хороший баланс времени и впечатлений",
+        "Разнообразие активностей",
+        "Есть время на отдых"
+      ],
+      disadvantages: [
+        "Не все выбранные мероприятия",
+        "Требует умеренной активности"
+      ]
+    };
+  };
+
+  // Полный маршрут (8-10 мероприятий)
+  const generateFullRoute = (events: PlannedEvent[]): RouteVariant => {
+    const fullEvents = [...events]
+      .slice(0, 9)
+      .map((event, index, array) => ({
+        ...event,
+        order: index,
+        plannedTime: calculateTime("09:00", index),
+        travelTime: index > 0 ? calculateTravelTime(event, array[index - 1]) : 0
+      }));
+
+    const totalTime = calculateTotalTime(fullEvents);
+    const travelTime = fullEvents.reduce((total, event) => total + event.travelTime, 0);
+
+    return {
+      id: "full-route",
+      name: "Полный день",
+      events: fullEvents,
+      totalTime,
+      travelTime,
+      eventCount: fullEvents.length,
+      score: 82,
+      description: "8-9 мероприятий, охватывающих весь день",
+      advantages: [
+        "Охватывает больше всего мероприятий",
+        "Насыщенный день",
+        "Максимум впечатлений"
+      ],
+      disadvantages: [
+        "Может быть утомительно",
+        "Мало свободного времени",
+        "Требует хорошей физической формы"
+      ]
+    };
+  };
+
+  const calculateTime = (baseTime: string, offset: number): string => {
+    const [hours, minutes] = baseTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + (offset * 120); // +2 часа на каждое следующее событие
+    const newHours = Math.floor(totalMinutes / 60) % 24;
+    const newMinutes = totalMinutes % 60;
+    return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+  };
+
+  const handleGenerateRoutes = async () => {
+    if (plannedEvents.length < 2) {
+      toast.error("Добавьте хотя бы 2 мероприятия для построения маршрута");
+      return;
+    }
+
+    if (useAI && plannedEvents.length >= 3) {
+      await generateAIRoutes();
+    } else {
+      await generateRouteVariants();
+    }
   };
 
   const selectVariant = (variantId: string) => {
@@ -586,21 +566,9 @@ export default function PlannerPage() {
   };
 
   const shareRoute = () => {
-    const routeData = {
-      title: `Маршрут по Москве от ${user?.fullName}`,
-      events: plannedEvents.map(event => ({
-        время: event.plannedTime,
-        событие: event.title,
-        адрес: event.location,
-        длительность: `${event.duration} мин`
-      })),
-      totalTime: formatTime(calculateTotalTime(plannedEvents)),
-      totalEvents: plannedEvents.length
-    };
-
-    const routeText = `Мой маршрут по Москве:\n\n${routeData.events.map((event, index) => 
-      `${index + 1}. ${event.время} - ${event.событие} (${event.адрес})`
-    ).join('\n')}\n\nОбщее время: ${routeData.totalTime}`;
+    const routeText = `Мой маршрут по Москве:\n\n${plannedEvents.map((event, index) => 
+      `${index + 1}. ${event.plannedTime} - ${event.title} (${event.location})`
+    ).join('\n')}\n\nОбщее время: ${formatTime(calculateTotalTime(plannedEvents))}`;
 
     navigator.clipboard.writeText(routeText);
     toast.success("Маршрут скопирован в буфер обмена!");
@@ -610,27 +578,21 @@ export default function PlannerPage() {
     const routeData = {
       title: `Маршрут по Москве - ${new Date().toLocaleDateString()}`,
       user: user?.fullName,
-      group: groupMembers.map(m => m.user.fullName),
       events: plannedEvents.map(event => ({
         order: event.order + 1,
         time: event.plannedTime,
         title: event.title,
         location: event.location,
         duration: `${event.duration} мин`,
-        travelTime: `${event.travelTime} мин`,
-        category: event.category
+        travelTime: `${event.travelTime} мин`
       })),
       statistics: {
         totalEvents: plannedEvents.length,
         totalTime: formatTime(calculateTotalTime(plannedEvents)),
-        totalTravelTime: formatTime(plannedEvents.reduce((total, event) => total + event.travelTime, 0)),
-        efficiency: `${Math.round((plannedEvents.reduce((total, event) => total + event.duration, 0) / calculateTotalTime(plannedEvents)) * 100)}%`
+        totalTravelTime: formatTime(plannedEvents.reduce((total, event) => total + event.travelTime, 0))
       }
     };
 
-    console.log("Экспорт маршрута:", routeData);
-    
-    // В реальном приложении здесь был бы экспорт в PDF или CSV
     const blob = new Blob([JSON.stringify(routeData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -664,19 +626,20 @@ export default function PlannerPage() {
       cinema: "bg-purple-100 text-purple-800 border-purple-200",
       food: "bg-orange-100 text-orange-800 border-orange-200",
       art: "bg-pink-100 text-pink-800 border-pink-200",
-      sport: "bg-teal-100 text-teal-800 border-teal-200"
+      sport: "bg-teal-100 text-teal-800 border-teal-200",
+      culture: "bg-red-100 text-red-800 border-red-200",
+      recreation: "bg-indigo-100 text-indigo-800 border-indigo-200",
+      shopping: "bg-amber-100 text-amber-800 border-amber-200",
+      theater: "bg-rose-100 text-rose-800 border-rose-200",
+      photo: "bg-cyan-100 text-cyan-800 border-cyan-200"
     };
     return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const getCategoryIcon = (category: string) => {
     const icons = {
-      music: "🎵",
-      workshop: "🔧",
-      cinema: "🎬",
-      food: "🍴",
-      art: "🎨",
-      sport: "⚽"
+      music: "🎵", workshop: "🔧", cinema: "🎬", food: "🍴", art: "🎨", sport: "⚽",
+      culture: "🏛️", recreation: "🚤", shopping: "🛍️", theater: "🎭", photo: "📸"
     };
     return icons[category as keyof typeof icons] || "📌";
   };
@@ -725,16 +688,28 @@ export default function PlannerPage() {
   return (
     <div className="min-h-[calc(100vh-68px)] bg-background">
       {/* Анимация генерации маршрута */}
-      {isGenerating && (
+      {(isGenerating || isAIRouteGenerating) && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
           <Card className="w-full max-w-md mx-4">
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2">
-                <Route className="h-6 w-6 text-primary" />
-                Генерируем маршрут по Москве
+                {isAIRouteGenerating ? (
+                  <>
+                    <Brain className="h-6 w-6 text-purple-600" />
+                    AI строит маршруты
+                  </>
+                ) : (
+                  <>
+                    <Route className="h-6 w-6 text-primary" />
+                    Генерируем маршрут по Москве
+                  </>
+                )}
               </CardTitle>
               <CardDescription className="text-center">
-                Оптимизируем ваш маршрут для максимального комфорта
+                {isAIRouteGenerating 
+                  ? "Нейросеть создает 3 разных варианта маршрута"
+                  : "Оптимизируем ваш маршрут для максимального комфорта"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -758,7 +733,7 @@ export default function PlannerPage() {
                 <div className="p-2 bg-blue-50 rounded-lg border">
                   <MapPin className="h-4 w-4 mx-auto mb-1 text-blue-600" />
                   <span className="font-medium">{plannedEvents.length}</span>
-                  <div className="text-muted-foreground">локаций</div>
+                  <div className="text-muted-foreground">мероприятий</div>
                 </div>
                 <div className="p-2 bg-green-50 rounded-lg border">
                   <Clock className="h-4 w-4 mx-auto mb-1 text-green-600" />
@@ -771,6 +746,14 @@ export default function PlannerPage() {
                   <div className="text-muted-foreground">участников</div>
                 </div>
               </div>
+
+              {isAIRouteGenerating && (
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <p className="text-sm text-purple-800 text-center">
+                    🧠 AI создает 3 варианта: короткий, средний и полный день
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -801,35 +784,67 @@ export default function PlannerPage() {
                 </Button>
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              {plannedEvents.length > 0 && (
-                <>
-                  <Button variant="outline" onClick={shareRoute}>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Поделиться
-                  </Button>
-                  <Button variant="outline" onClick={exportRoute}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Экспорт
-                  </Button>
-                  {plannedEvents.length >= 2 && !showComparison && (
-                    <Button onClick={generateRouteVariants}>
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Построить маршрут
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2 flex-wrap">
+                {plannedEvents.length > 0 && (
+                  <>
+                    <Button variant="outline" onClick={shareRoute}>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Поделиться
                     </Button>
-                  )}
-                  <Button variant="outline" onClick={clearAllEvents} className="text-destructive">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Очистить все
+                    <Button variant="outline" onClick={exportRoute}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Экспорт
+                    </Button>
+                    <Button variant="outline" onClick={clearAllEvents} className="text-destructive">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Очистить все
+                    </Button>
+                  </>
+                )}
+                <Button asChild>
+                  <Link href="/events">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить места
+                  </Link>
+                </Button>
+              </div>
+
+              {plannedEvents.length >= 2 && !showComparison && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useAI}
+                        onChange={(e) => setUseAI(e.target.checked)}
+                        className="w-4 h-4"
+                        disabled={plannedEvents.length < 3}
+                      />
+                      <span className="flex items-center gap-1">
+                        🧠 Использовать AI {plannedEvents.length < 3 && "(нужно 3+ мероприятий)"}
+                      </span>
+                    </label>
+                  </div>
+                  <Button 
+                    onClick={handleGenerateRoutes}
+                    disabled={isGenerating || isAIRouteGenerating}
+                    className="flex-1"
+                  >
+                    {isAIRouteGenerating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        AI строит маршруты...
+                      </>
+                    ) : (
+                      <>
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        {useAI && plannedEvents.length >= 3 ? "AI Построить маршруты" : "Построить маршруты"}
+                      </>
+                    )}
                   </Button>
-                </>
+                </div>
               )}
-              <Button asChild>
-                <Link href="/events">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Добавить места
-                </Link>
-              </Button>
             </div>
           </div>
 
@@ -918,7 +933,7 @@ export default function PlannerPage() {
               <CardHeader>
                 <CardTitle>Варианты маршрутов по Москве</CardTitle>
                 <CardDescription>
-                  Выберите наиболее подходящий вариант маршрута. Каждый вариант оптимизирован по разным параметрам.
+                  Выберите наиболее подходящий вариант. Каждый маршрут содержит разное количество мероприятий и длительность.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -943,10 +958,19 @@ export default function PlannerPage() {
                   
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg leading-tight">{variant.name}</CardTitle>
-                      <Badge variant="secondary" className="text-sm">
-                        {variant.score}%
-                      </Badge>
+                      <div>
+                        <CardTitle className="text-lg leading-tight">{variant.name}</CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-sm">
+                            {variant.score}%
+                          </Badge>
+                          {variant.id.includes('ai') && (
+                            <Badge className="bg-purple-500 text-white">
+                              🧠 AI
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
                     <CardDescription>{variant.description}</CardDescription>
                   </CardHeader>
@@ -960,7 +984,7 @@ export default function PlannerPage() {
                       <div className="h-8 w-px bg-border"></div>
                       <div className="text-center">
                         <div className="text-lg font-semibold">{variant.eventCount}</div>
-                        <div className="text-xs text-muted-foreground">мест</div>
+                        <div className="text-xs text-muted-foreground">мероприятий</div>
                       </div>
                       <div className="h-8 w-px bg-border"></div>
                       <div className="text-center">
@@ -1057,7 +1081,7 @@ export default function PlannerPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="text-2xl font-bold text-primary">{stats.totalEvents}</div>
-                      <div className="text-sm text-muted-foreground">Мест</div>
+                      <div className="text-sm text-muted-foreground">Мероприятий</div>
                     </div>
                     <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                       <div className="text-2xl font-bold text-primary">{formatTime(stats.totalTime)}</div>
@@ -1078,20 +1102,21 @@ export default function PlannerPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle>Маршрут по Москве</CardTitle>
+                    <CardTitle>Выбранные мероприятия</CardTitle>
                     <CardDescription>
                       {plannedEvents.length > 0 
-                        ? selectedVariant 
-                          ? `Выбранный маршрут: ${routeVariants.find(v => v.id === selectedVariant)?.name}`
-                          : "Оптимальная последовательность посещения мест" 
-                        : "Добавьте места чтобы построить маршрут"}
+                        ? `Вы выбрали ${plannedEvents.length} мероприятий. Постройте маршрут чтобы увидеть варианты.`
+                        : "Добавьте мероприятия чтобы построить маршрут"
+                      }
                     </CardDescription>
                   </div>
                   {plannedEvents.length > 1 && (
-                    <Button onClick={generateRouteVariants} variant="outline" size="sm">
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Построить маршрут
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button onClick={handleGenerateRoutes} variant="outline" size="sm">
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        Построить маршруты
+                      </Button>
+                    </div>
                   )}
                 </CardHeader>
                 <CardContent>
@@ -1100,12 +1125,12 @@ export default function PlannerPage() {
                       <Route className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-semibold mb-2">Маршрут пуст</h3>
                       <p className="text-muted-foreground mb-4">
-                        Добавьте места из предложенных ниже или со страницы всех достопримечательностей
+                        Добавьте мероприятия из предложенных ниже или со страницы всех достопримечательностей
                       </p>
                       <Button asChild>
                         <Link href="/events">
                           <Plus className="h-4 w-4 mr-2" />
-                          Найти места
+                          Найти мероприятия
                         </Link>
                       </Button>
                     </div>
@@ -1215,7 +1240,7 @@ export default function PlannerPage() {
                 <CardHeader>
                   <CardTitle>Популярные места Москвы</CardTitle>
                   <CardDescription>
-                    Рекомендуемые достопримечательности и мероприятия
+                    Рекомендуемые мероприятия и достопримечательности
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1274,7 +1299,7 @@ export default function PlannerPage() {
                   
                   <Button asChild variant="outline" className="w-full">
                     <Link href="/events">
-                      Все достопримечательности
+                      Все мероприятия
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
                   </Button>
@@ -1283,28 +1308,24 @@ export default function PlannerPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Советы для Москвы</CardTitle>
+                  <CardTitle>Советы для планирования</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                   <div className="flex items-start gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors">
                     <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Учитывайте пробки при планировании времени между локациями</span>
+                    <span>Выбирайте 10-15 понравившихся мероприятий для лучшего выбора маршрутов</span>
                   </div>
                   <div className="flex items-start gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors">
                     <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Используйте метро для быстрого перемещения между районами</span>
+                    <span>AI создаст 3 варианта: короткий (3-4 ч), средний (5-6 ч) и полный день (7-8 ч)</span>
                   </div>
                   <div className="flex items-start gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors">
                     <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Начинайте маршрут с центральных достопримечательностей</span>
+                    <span>Учитывайте время на перемещение между локациями (15-40 минут)</span>
                   </div>
                   <div className="flex items-start gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors">
                     <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Проверяйте время работы музеев и парков заранее</span>
-                  </div>
-                  <div className="flex items-start gap-2 p-2 hover:bg-muted/50 rounded-lg transition-colors">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
-                    <span>Бронируйте билеты онлайн для популярных мест</span>
+                    <span>Закрепляйте важные мероприятия, чтобы AI учел их в маршруте</span>
                   </div>
                 </CardContent>
               </Card>
