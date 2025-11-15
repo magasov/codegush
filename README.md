@@ -135,43 +135,6 @@ pnpm start
 - http://localhost:3000
 
 ---
-
-## Структура проекта (упрощённо)
-
-```text
-codegush/
-├─ app/
-│  ├─ page.tsx                # Главная страница
-│  ├─ about/page.tsx          # О проекте
-│  ├─ events/page.tsx         # Каталог событий
-│  ├─ planner/page.tsx        # Планировщик маршрутов
-│  ├─ profile/page.tsx        # Профиль пользователя
-│  ├─ faq/page.tsx            # FAQ
-│  ├─ api/auth-context.tsx    # Контекст аутентификации (localStorage)
-│  ├─ layout.tsx              # Общий layout приложения
-│  └─ globals.css             # Глобальные стили
-│
-├─ components/
-│  ├─ header.tsx              # Шапка сайта (навигация, аккаунт)
-│  ├─ footer.tsx              # Подвал
-│  ├─ popup.tsx               # Модальное окно логина/регистрации
-│  ├─ theme-provider.tsx      # Провайдер тем
-│  ├─ theme-toggle.tsx        # Переключатель светлой/тёмной темы
-│  └─ ui/                     # Библиотека UI-компонентов (button, card, input и т.п.)
-│
-├─ public/
-│  ├─ logo.png                # Логотип
-│  ├─ next.svg, vercel.svg    # Статические ресурсы по умолчанию
-│  └─ ...                     # Здесь можно хранить скриншоты
-│
-├─ .env                       # Переменные окружения (демо)
-├─ package.json               # Скрипты и зависимости
-├─ tailwind.config.ts         # Конфигурация Tailwind CSS
-└─ tsconfig.json              # Конфигурация TypeScript
-```
-
----
-
 ## Как работать с приложением
 
 1. **Открыть главную страницу**  
@@ -204,6 +167,49 @@ codegush/
      - Загрузить аватар.
      - Экспортировать профиль в JSON.
      - Очистить локальные данные.
+
+---
+
+## Скриншоты
+
+### Главная страница
+
+<!-- TODO: добавить файл, например public/screenshots/home.png -->
+![Главная страница](./public/assets/images/readme/1.png)
+
+---
+
+### Список событий
+
+<!-- TODO: добавить файл, например public/screenshots/events.png -->
+![Список событий](./public/assets/images/readme/2.png)
+
+---
+
+### Планировщик маршрутов
+
+<!-- TODO: добавить файл, например public/screenshots/planner.png -->
+![Планировщик маршрутов](./public/assets/images/readme/3.png)
+
+---
+
+### Профиль пользователя
+
+<!-- TODO: добавить файл, например public/screenshots/profile.png -->
+![Профиль пользователя](./public/assets/images/readme/4.png)
+
+---
+
+## Полезные скрипты
+
+В `package.json` доступны стандартные скрипты:
+
+```bash
+npm run dev      # запуск dev-сервера
+npm run build    # production-сборка
+npm start        # запуск production-сервера
+npm run lint     # проверка кода линтером
+```
 
 ---
 
