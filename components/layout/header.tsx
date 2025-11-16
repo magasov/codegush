@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, User, Users } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { Skeleton } from "../ui/skeleton";
 
@@ -50,6 +50,17 @@ export default function Header() {
         {isAuth ? (
           <div className="flex items-center gap-4">
             <ThemeToggle />
+             <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex"
+            >
+              <Link href="/friends" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span>Друзья</span>
+              </Link>
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
