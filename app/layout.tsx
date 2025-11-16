@@ -6,6 +6,7 @@ import Header from "@/components/layout/header";
 import { Toaster } from "react-hot-toast";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import Footer from "@/components/layout/footer";
+import { AIChatButton } from "@/components/ui/ChatOpen";
 
 export const metadata: Metadata = {
   title: "Dev",
@@ -31,6 +32,8 @@ export default function RootLayout({
             <Header />
             <LayoutWrapper>{children}</LayoutWrapper>
             <Footer />
+            {/* Добавлена эта строка ↓ */}
+            <AIChatButton />
           </AuthProvider>
         </ThemeProvider>
       </body>
