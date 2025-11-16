@@ -192,6 +192,28 @@ pnpm start
 
 ---
 
+### Наши контакты
+
+<!-- Contacts: связаться с нами -->
+![Список событий](./public/assets/images/readme/image6.png)
+
+---
+
+### Часто задаваемые вопросы
+
+<!-- FAQ: вопросы про наш сайт -->
+![Список событий](./public/assets/images/readme/image7.png)
+
+---
+
+###  О нашем проекте
+
+<!-- About us -->
+![Список событий](./public/assets/images/readme/image5.png)
+
+---
+
+
 ### Планировщик маршрутов
 
 <!-- TODO: добавить файл, например public/screenshots/planner.png -->
@@ -206,7 +228,7 @@ pnpm start
 
 ---
 
-### Модальное окно
+### Модальное окно AI
 
 <!-- AI: задать вопрос по сайту, например "как сделать планирование?" -->
 ![Модальное окно](./public/assets/images/readme/image.png)
