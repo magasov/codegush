@@ -18,9 +18,7 @@ export default function Contacts() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Здесь будет логика отправки формы
     console.log("Форма отправлена:", formData);
-    // Сброс формы после отправки
     setFormData({ name: "", email: "", subject: "", message: "" });
     alert("Сообщение отправлено! Мы свяжемся с вами в ближайшее время.");
   };
