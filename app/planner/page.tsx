@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, MapPin, Clock, Users, Route, Trash2, Plus, Share2, Download, ChevronRight, Star, Check, X, BarChart3, User, UserPlus, Loader2, Brain } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, Route, Trash2, Plus, Share2, Download, ChevronRight, Star, Check, X, BarChart3, User, UserPlus, Loader2, Brain, Play, Pause, SkipForward, RotateCcw, Navigation } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import toast from "react-hot-toast";
@@ -74,6 +74,15 @@ interface RouteStats {
   efficiency: number;
 }
 
+interface ActiveRouteState {
+  isActive: boolean;
+  currentEventIndex: number;
+  startTime: string;
+  timeRemaining: number;
+  totalDuration: number;
+  isPaused: boolean;
+}
+
 const moscowLocations = [
   { address: "Красная площадь, 1", coordinates: [55.7539, 37.6208] },
   { address: "ул. Арбат, 25", coordinates: [55.7496, 37.5904] },
@@ -98,6 +107,14 @@ export default function PlannerPage() {
   const [currentStep, setCurrentStep] = useState("");
   const [currentStepDescription, setCurrentStepDescription] = useState("");
   const [useAI, setUseAI] = useState(true);
+  const [activeRoute, setActiveRoute] = useState<ActiveRouteState>({
+    isActive: false,
+    currentEventIndex: 0,
+    startTime: "",
+    timeRemaining: 0,
+    totalDuration: 0,
+    isPaused: false
+  });
   const router = useRouter();
 
   const mockEvents: Event[] = [
@@ -175,6 +192,33 @@ export default function PlannerPage() {
     checkUser();
     setSuggestedEvents(mockEvents);
   }, [router]);
+
+  // Таймер обратного отсчета
+  useEffect(() => {
+    if (!activeRoute.isActive || activeRoute.isPaused || activeRoute.timeRemaining <= 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setActiveRoute(prev => {
+        if (prev.timeRemaining <= 1) {
+          clearInterval(timer);
+          toast.success("🎉 Маршрут завершен!");
+          return {
+            ...prev,
+            isActive: false,
+            timeRemaining: 0
+          };
+        }
+        return {
+          ...prev,
+          timeRemaining: prev.timeRemaining - 1
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeRoute.isActive, activeRoute.isPaused, activeRoute.timeRemaining]);
 
   const loadGroupMembers = (currentUserId: string) => {
     try {
@@ -267,6 +311,91 @@ export default function PlannerPage() {
     localStorage.setItem(`planner_${user.id}`, JSON.stringify(updatedEvents));
 
     toast.success(`"${event.title}" добавлено в маршрут!`);
+  };
+
+  // Функция для добавления события в активный маршрут
+  const addEventToActiveRoute = async (event: Event) => {
+    if (!activeRoute.isActive) {
+      addEventToPlanner(event);
+      return;
+    }
+
+    // Добавляем событие в маршрут
+    const updatedEvents = [...plannedEvents];
+    const newPlannedEvent: PlannedEvent = {
+      ...event,
+      plannedTime: calculateTimeForNewEvent(plannedEvents, event),
+      travelTime: calculateTravelTime(event, plannedEvents[plannedEvents.length - 1]),
+      order: plannedEvents.length,
+      addedBy: user?.id || "unknown",
+      isFixed: false
+    };
+
+    updatedEvents.push(newPlannedEvent);
+
+    // Пересчитываем маршрут с новым событием
+    try {
+      setIsAIRouteGenerating(true);
+      setCurrentStep("AI перестраивает маршрут...");
+      
+      const request = {
+        events: updatedEvents.map(event => ({
+          id: event.id,
+          title: event.title,
+          duration: event.duration,
+          location: event.location,
+          category: event.category,
+          popularity: event.popularity,
+          time: event.time
+        })),
+        constraints: {
+          startTime: "09:00",
+          endTime: "22:00",
+          maxTotalTime: 780
+        }
+      };
+
+      const aiGeneratedRoutes = await routeAI.generateRouteVariants(request);
+      const bestRoute = aiGeneratedRoutes[0]; // Берем лучший вариант
+      
+      const convertedEvents: PlannedEvent[] = bestRoute.events.map(aiEvent => {
+        const originalEvent = updatedEvents.find(e => e.id === aiEvent.id);
+        if (!originalEvent) return aiEvent;
+        
+        return {
+          ...originalEvent,
+          plannedTime: aiEvent.plannedTime,
+          travelTime: aiEvent.travelTime,
+          order: aiEvent.order,
+          addedBy: originalEvent.addedBy,
+          isFixed: originalEvent.isFixed
+        };
+      }).filter(Boolean) as PlannedEvent[];
+
+      setPlannedEvents(convertedEvents);
+      
+      // Обновляем активный маршрут
+      const currentEventId = plannedEvents[activeRoute.currentEventIndex]?.id;
+      const newCurrentIndex = convertedEvents.findIndex(event => event.id === currentEventId);
+      
+      const remainingEvents = convertedEvents.slice(newCurrentIndex >= 0 ? newCurrentIndex : 0);
+      const remainingTime = calculateTotalTime(remainingEvents) * 60;
+
+      setActiveRoute(prev => ({
+        ...prev,
+        currentEventIndex: newCurrentIndex >= 0 ? newCurrentIndex : 0,
+        timeRemaining: remainingTime
+      }));
+
+      toast.success(`"${event.title}" добавлено! Маршрут обновлен AI`);
+
+    } catch (error) {
+      console.error("AI route regeneration failed:", error);
+      toast.error("Не удалось перестроить маршрут. Событие добавлено в конец.");
+      addEventToPlanner(event);
+    } finally {
+      setIsAIRouteGenerating(false);
+    }
   };
 
   const removeEventFromPlanner = (eventId: string) => {
@@ -530,6 +659,17 @@ export default function PlannerPage() {
     return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
   };
 
+  // Вспомогательная функция для расчета времени нового события
+  const calculateTimeForNewEvent = (events: PlannedEvent[], newEvent: Event): string => {
+    if (events.length === 0) return newEvent.time;
+    
+    const lastEvent = events[events.length - 1];
+    const lastTime = new Date(`2024-01-01T${lastEvent.plannedTime}`);
+    const newTime = new Date(lastTime.getTime() + (lastEvent.duration + lastEvent.travelTime) * 60000);
+    
+    return `${newTime.getHours().toString().padStart(2, '0')}:${newTime.getMinutes().toString().padStart(2, '0')}`;
+  };
+
   const handleGenerateRoutes = async () => {
     if (plannedEvents.length < 2) {
       toast.error("Добавьте хотя бы 2 мероприятия для построения маршрута");
@@ -551,8 +691,78 @@ export default function PlannerPage() {
       if (user) {
         localStorage.setItem(`planner_${user.id}`, JSON.stringify(variant.events));
       }
+      // НЕ закрываем сравнение здесь - пользователь должен нажать "Идти по маршруту"
       toast.success(`Выбран маршрут: ${variant.name}`);
     }
+  };
+
+  // Новая функция для старта маршрута
+  const startActiveRoute = () => {
+    if (plannedEvents.length === 0) {
+      toast.error("Нет мероприятий в маршруте");
+      return;
+    }
+
+    const totalDuration = calculateTotalTime(plannedEvents);
+    setActiveRoute({
+      isActive: true,
+      currentEventIndex: 0,
+      startTime: new Date().toISOString(),
+      timeRemaining: totalDuration * 60, // в секундах
+      totalDuration: totalDuration * 60,
+      isPaused: false
+    });
+
+    setShowComparison(false); // Закрываем сравнение только когда начинаем маршрут
+    
+    toast.success("Маршрут начался! Удачи!");
+  };
+
+  // Функция для паузы/возобновления
+  const togglePause = () => {
+    setActiveRoute(prev => ({
+      ...prev,
+      isPaused: !prev.isPaused
+    }));
+  };
+
+  // Функция для перехода к следующему событию
+  const nextEvent = () => {
+    setActiveRoute(prev => {
+      if (prev.currentEventIndex >= plannedEvents.length - 1) {
+        // Маршрут завершен
+        toast.success("🎉 Маршрут завершен! Отличная работа!");
+        return {
+          ...prev,
+          isActive: false,
+          currentEventIndex: 0,
+          timeRemaining: 0
+        };
+      }
+
+      const nextIndex = prev.currentEventIndex + 1;
+      const remainingEvents = plannedEvents.slice(nextIndex);
+      const remainingTime = calculateTotalTime(remainingEvents) * 60;
+      
+      return {
+        ...prev,
+        currentEventIndex: nextIndex,
+        timeRemaining: remainingTime
+      };
+    });
+  };
+
+  // Функция для сброса маршрута
+  const resetRoute = () => {
+    setActiveRoute({
+      isActive: false,
+      currentEventIndex: 0,
+      startTime: "",
+      timeRemaining: 0,
+      totalDuration: 0,
+      isPaused: false
+    });
+    toast.success("Маршрут сброшен");
   };
 
   const shareRoute = () => {
@@ -640,6 +850,18 @@ export default function PlannerPage() {
     return hours > 0 ? `${hours}ч ${mins}м` : `${mins}м`;
   };
 
+  // Форматирование времени для таймера
+  const formatTimerTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const getUserNameById = (userId: string) => {
     const member = groupMembers.find(m => m.user.id === userId);
     return member ? member.user.fullName : "Неизвестный";
@@ -658,6 +880,17 @@ export default function PlannerPage() {
     };
   };
 
+  // Получение текущего события
+  const getCurrentEvent = () => {
+    return plannedEvents[activeRoute.currentEventIndex];
+  };
+
+  // Получение прогресса маршрута
+  const getRouteProgress = () => {
+    if (activeRoute.totalDuration === 0) return 0;
+    return ((activeRoute.totalDuration - activeRoute.timeRemaining) / activeRoute.totalDuration) * 100;
+  };
+
   if (loading) {
     return (
       <div className="min-h-[calc(100vh-68px)] flex items-center justify-center">
@@ -671,6 +904,228 @@ export default function PlannerPage() {
 
   if (!user) {
     return null;
+  }
+
+  // Если маршрут активен, показываем экран активного маршрута
+  if (activeRoute.isActive) {
+    const currentEvent = getCurrentEvent();
+    const progress = getRouteProgress();
+
+    return (
+      <div className="min-h-[calc(100vh-68px)] bg-background">
+        <div className="container px-4 py-8">
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Левая колонка - активный маршрут */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900">Активный маршрут</h1>
+                      <p className="text-gray-600">Следуйте вашему плану по Москве</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={togglePause}
+                      >
+                        {activeRoute.isPaused ? (
+                          <>
+                            <Play className="h-4 w-4 mr-2" />
+                            Продолжить
+                          </>
+                        ) : (
+                          <>
+                            <Pause className="h-4 w-4 mr-2" />
+                            Пауза
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={nextEvent}
+                      >
+                        <SkipForward className="h-4 w-4 mr-2" />
+                        Далее
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={resetRoute}
+                        className="text-destructive"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Сбросить
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Таймер и прогресс */}
+                  <div className="text-center mb-6">
+                    <div className="text-4xl font-bold text-gray-900 mb-2">
+                      {formatTimerTime(activeRoute.timeRemaining)}
+                    </div>
+                    <p className="text-gray-600 mb-4">осталось до завершения маршрута</p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Прогресс маршрута</span>
+                        <span>{Math.round(progress)}%</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                  </div>
+
+                  {/* Текущее событие */}
+                  {currentEvent && (
+                    <Card className="border-l-4 border-l-primary">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                            {activeRoute.currentEventIndex + 1}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-lg">Сейчас: {currentEvent.title}</h3>
+                            <p className="text-sm text-gray-600">{currentEvent.description}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-gray-500" />
+                            <span>Длительность: {currentEvent.duration} мин</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-gray-500" />
+                            <span className="truncate">{currentEvent.location}</span>
+                          </div>
+                        </div>
+
+                        {currentEvent.travelTime > 0 && (
+                          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-800 flex items-center gap-2">
+                              <Navigation className="h-4 w-4" />
+                              Следующий переход: ~{currentEvent.travelTime} минут
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Предстоящие события */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">Далее по маршруту:</h4>
+                    {plannedEvents.slice(activeRoute.currentEventIndex + 1).map((event, index) => (
+                      <Card key={event.id} className="border">
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center text-xs font-bold">
+                              {activeRoute.currentEventIndex + index + 2}
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-medium text-sm">{event.title}</h5>
+                              <div className="flex items-center gap-2 text-xs text-gray-600">
+                                <Clock className="h-3 w-3" />
+                                <span>{event.plannedTime}</span>
+                                <MapPin className="h-3 w-3" />
+                                <span className="truncate">{event.location}</span>
+                              </div>
+                            </div>
+                            <Badge className={getCategoryColor(event.category)}>
+                              {getCategoryIcon(event.category)}
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Правая колонка - добавление событий */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Добавить в маршрут</CardTitle>
+                  <CardDescription>
+                    AI автоматически перестроит маршрут с новым событием
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {suggestedEvents
+                    .filter(event => !plannedEvents.find(planned => planned.id === event.id))
+                    .slice(0, 5)
+                    .map((event) => (
+                      <Card 
+                        key={event.id} 
+                        className="hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => addEventToActiveRoute(event)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between">
+                              <h4 className="font-semibold text-sm leading-tight">{event.title}</h4>
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                <span>{event.popularity}%</span>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-1 text-xs">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{event.duration} мин</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                <span className="truncate">{event.location}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <Badge className={getCategoryColor(event.category)}>
+                                {getCategoryIcon(event.category)}
+                              </Badge>
+                              <Button size="sm" variant="outline">
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/events">
+                      Все мероприятия
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {isAIRouteGenerating && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
+                      <div>
+                        <p className="font-medium text-sm">AI перестраивает маршрут</p>
+                        <p className="text-xs text-muted-foreground">Добавляем новое событие...</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const stats = getRouteStats();
@@ -1024,20 +1479,33 @@ export default function PlannerPage() {
                       </div>
                     </div>
 
-                    <Button 
-                      className="w-full" 
-                      variant={selectedVariant === variant.id ? "default" : "outline"}
-                      size="sm"
-                    >
-                      {selectedVariant === variant.id ? (
-                        <>
-                          <Check className="h-4 w-4 mr-2" />
-                          Выбран
-                        </>
-                      ) : (
-                        "Выбрать этот маршрут"
+                    <div className="flex gap-2">
+                      <Button 
+                        className="flex-1" 
+                        variant={selectedVariant === variant.id ? "default" : "outline"}
+                        size="sm"
+                      >
+                        {selectedVariant === variant.id ? (
+                          <>
+                            <Check className="h-4 w-4 mr-2" />
+                            Выбран
+                          </>
+                        ) : (
+                          "Выбрать этот маршрут"
+                        )}
+                      </Button>
+                      
+                      {selectedVariant === variant.id && (
+                        <Button 
+                          onClick={startActiveRoute}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          Идти по маршруту
+                        </Button>
                       )}
-                    </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
