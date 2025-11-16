@@ -3,8 +3,8 @@
 import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 import Popup from "@/components/popup";
-import { Button } from "./ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "../ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useAuth } from "@/app/api/auth-context";
 import {
   DropdownMenu,
@@ -13,10 +13,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 import { LogOut, Settings, User } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from "../ui/skeleton";
 
 export default function Header() {
   const { isAuth, user, handleLogout, isLoading } = useAuth();

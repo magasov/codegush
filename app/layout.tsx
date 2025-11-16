@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "./api/auth-context";
 import "./globals.css";
-import Header from "@/components/header";
+import Header from "@/components/layout/header";
 import { Toaster } from "react-hot-toast";
 import LayoutWrapper from "@/components/LayoutWrapper";
-import Footer from "@/components/footer";
+import Footer from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: "Dev",

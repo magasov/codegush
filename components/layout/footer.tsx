@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { 
   MapPin, 
   Calendar, 
