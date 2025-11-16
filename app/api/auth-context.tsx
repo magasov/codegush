@@ -1,4 +1,3 @@
-// app/api/auth-context.tsx
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -28,7 +27,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Проверяем наличие данных пользователя в localStorage при загрузке
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {

@@ -23,7 +23,6 @@ interface PopupProps {
   type: "login" | "signup";
 }
 
-// Генерация случайного ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export default function Popup({ type }: PopupProps) {
@@ -37,11 +36,9 @@ export default function Popup({ type }: PopupProps) {
     const formData = new FormData(e.currentTarget);
     
     if (isLogin) {
-      // Логика входа
       const username = formData.get("username") as string;
       const password = formData.get("password") as string;
 
-      // Проверяем существующего пользователя в localStorage
       const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
       const user = existingUsers.find((u: any) => 
         u.username === username && u.password === password
@@ -57,7 +54,6 @@ export default function Popup({ type }: PopupProps) {
         toast.error("Неверное имя пользователя или пароль");
       }
     } else {
-      // Логика регистрации
       const userData = {
         id: generateId(),
         username: formData.get("username") as string,
@@ -67,7 +63,6 @@ export default function Popup({ type }: PopupProps) {
         avatar: "",
       };
 
-      // Проверяем, не существует ли уже пользователь с таким username или email
       const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
       const userExists = existingUsers.some((u: any) => 
         u.username === userData.username || u.email === userData.email
@@ -78,7 +73,6 @@ export default function Popup({ type }: PopupProps) {
         return;
       }
 
-      // Сохраняем нового пользователя
       const updatedUsers = [...existingUsers, userData];
       localStorage.setItem('users', JSON.stringify(updatedUsers));
 

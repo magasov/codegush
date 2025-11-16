@@ -74,7 +74,6 @@ interface RouteStats {
   efficiency: number;
 }
 
-// Реальные адреса Москвы
 const moscowLocations = [
   { address: "Красная площадь, 1", coordinates: [55.7539, 37.6208] },
   { address: "ул. Арбат, 25", coordinates: [55.7496, 37.5904] },
@@ -101,7 +100,6 @@ export default function PlannerPage() {
   const [useAI, setUseAI] = useState(true);
   const router = useRouter();
 
-  // Mock данные событий
   const mockEvents: Event[] = [
     {
       id: "1", title: "Концерт группы 'Ветер'", description: "Выступление популярной рок-группы", date: "2024-06-15", time: "14:00", duration: 90, location: "Красная площадь, 1", category: "music", popularity: 95, price: 1500
@@ -334,7 +332,6 @@ export default function PlannerPage() {
     setGenerationProgress(100);
   };
 
-  // Новая функция для AI генерации маршрутов
   const generateAIRoutes = async () => {
     if (plannedEvents.length < 3) {
       toast.error("Добавьте хотя бы 3 мероприятия для AI планирования");
@@ -359,13 +356,12 @@ export default function PlannerPage() {
         constraints: {
           startTime: "09:00",
           endTime: "22:00", 
-          maxTotalTime: 780 // 13 часов
+          maxTotalTime: 780 
         }
       };
 
       const aiGeneratedRoutes = await routeAI.generateRouteVariants(request);
       
-      // Конвертируем AI маршруты в наш формат
       const convertedRoutes: RouteVariant[] = aiGeneratedRoutes.map(aiRoute => ({
         ...aiRoute,
         events: aiRoute.events.map(aiEvent => {
@@ -397,7 +393,6 @@ export default function PlannerPage() {
     }
   };
 
-  // Стандартная генерация маршрутов
   const generateRouteVariants = async () => {
     if (plannedEvents.length < 2) {
       if (plannedEvents.length === 1) {
@@ -408,7 +403,6 @@ export default function PlannerPage() {
 
     await simulateRouteGeneration();
 
-    // Создаем 3 варианта с разным количеством мероприятий
     const variants: RouteVariant[] = [
       generateShortRoute(plannedEvents),
       generateMediumRoute(plannedEvents),
@@ -420,7 +414,6 @@ export default function PlannerPage() {
     toast.success("Маршрут успешно сгенерирован!");
   };
 
-  // Короткий маршрут (3-4 мероприятия)
   const generateShortRoute = (events: PlannedEvent[]): RouteVariant => {
     const shortEvents = [...events]
       .sort((a, b) => b.popularity - a.popularity)
@@ -456,11 +449,9 @@ export default function PlannerPage() {
     };
   };
 
-  // Средний маршрут (5-7 мероприятий)
   const generateMediumRoute = (events: PlannedEvent[]): RouteVariant => {
     const mediumEvents = [...events]
       .sort((a, b) => {
-        // Смешиваем популярность и разнообразие категорий
         const categoryBonus = new Set(events.map(e => e.category)).size / events.length;
         return (b.popularity * 0.7 + categoryBonus * 30) - (a.popularity * 0.7 + categoryBonus * 30);
       })
@@ -496,7 +487,6 @@ export default function PlannerPage() {
     };
   };
 
-  // Полный маршрут (8-10 мероприятий)
   const generateFullRoute = (events: PlannedEvent[]): RouteVariant => {
     const fullEvents = [...events]
       .slice(0, 9)
@@ -534,7 +524,7 @@ export default function PlannerPage() {
 
   const calculateTime = (baseTime: string, offset: number): string => {
     const [hours, minutes] = baseTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + (offset * 120); // +2 часа на каждое следующее событие
+    const totalMinutes = hours * 60 + minutes + (offset * 120);
     const newHours = Math.floor(totalMinutes / 60) % 24;
     const newMinutes = totalMinutes % 60;
     return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
@@ -687,7 +677,6 @@ export default function PlannerPage() {
 
   return (
     <div className="min-h-[calc(100vh-68px)] bg-background">
-      {/* Анимация генерации маршрута */}
       {(isGenerating || isAIRouteGenerating) && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
           <Card className="w-full max-w-md mx-4">
@@ -759,7 +748,6 @@ export default function PlannerPage() {
         </div>
       )}
 
-      {/* Header */}
       <section className="py-8 bg-muted/30">
         <div className="container px-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">

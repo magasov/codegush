@@ -44,7 +44,6 @@ export default function EventsPage() {
   const [plannedEvents, setPlannedEvents] = useState<PlannedEvent[]>([]);
   const router = useRouter();
 
-// Mock данные событий
 const events: Event[] = [
   {
     id: "1",
@@ -203,20 +202,17 @@ const categories = [
 ];
 
   useEffect(() => {
-    // Проверяем наличие пользователя в localStorage
     const checkUser = () => {
       try {
         const userData = localStorage.getItem("user");
         if (userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
-          // Загружаем сохраненные события из localStorage
           const savedEvents = localStorage.getItem(`planner_${parsedUser.id}`);
           if (savedEvents) {
             setPlannedEvents(JSON.parse(savedEvents));
           }
         } else {
-          // Если пользователя нет, перенаправляем на главную
           router.push("/");
         }
       } catch (error) {
@@ -231,13 +227,12 @@ const categories = [
   }, [router]);
 
   const addEventToPlanner = (event: Event) => {
-    // Проверяем, не добавлено ли уже событие
     if (plannedEvents.find(planned => planned.id === event.id)) {
       toast.error("Это событие уже добавлено в ваш маршрут");
       return;
     }
 
-    const travelTime = Math.floor(Math.random() * 20) + 10; // Mock время перемещения
+    const travelTime = Math.floor(Math.random() * 20) + 10; 
     const newPlannedEvent: PlannedEvent = {
       ...event,
       plannedTime: event.time,
@@ -248,7 +243,6 @@ const categories = [
     const updatedEvents = [...plannedEvents, newPlannedEvent];
     setPlannedEvents(updatedEvents);
     
-    // Сохраняем в localStorage
     if (user) {
       localStorage.setItem(`planner_${user.id}`, JSON.stringify(updatedEvents));
     }
@@ -261,7 +255,6 @@ const categories = [
     const updatedEvents = plannedEvents.filter(event => event.id !== eventId);
     setPlannedEvents(updatedEvents);
     
-    // Сохраняем в localStorage
     if (user) {
       localStorage.setItem(`planner_${user.id}`, JSON.stringify(updatedEvents));
     }
@@ -306,12 +299,11 @@ const categories = [
   }
 
   if (!user) {
-    return null; // Редирект уже произойдет в useEffect
+    return null; 
   }
 
   return (
     <div className="min-h-[calc(100vh-68px)] bg-background">
-      {/* Header */}
       <section className="py-8 bg-muted/30">
         <div className="container px-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -339,7 +331,6 @@ const categories = [
         </div>
       </section>
 
-      {/* Filters and Search */}
       <section className="py-6 border-b">
         <div className="container px-4">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -368,7 +359,6 @@ const categories = [
         </div>
       </section>
 
-      {/* Events Grid */}
       <section className="py-8">
         <div className="container px-4">
           <div className="flex items-center justify-between mb-6">
@@ -480,7 +470,6 @@ const categories = [
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-12 bg-muted/30">
         <div className="container px-4">
           <Card>

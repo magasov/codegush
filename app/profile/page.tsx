@@ -49,15 +49,12 @@ export default function Profile() {
     const loadUserData = () => {
       setIsLoading(true);
       try {
-        // Получаем текущего авторизованного пользователя
         const currentUser = authUser || JSON.parse(localStorage.getItem('currentUser') || 'null');
         
         if (currentUser) {
-          // Получаем полные данные пользователя из списка пользователей
           const users = JSON.parse(localStorage.getItem('users') || '[]');
           const userData = users.find((u: UserData) => u.id === currentUser.id) || currentUser;
           
-          // Добавляем дополнительные поля, если их нет
           const completeUserData = {
             ...userData,
             joinDate: userData.joinDate || new Date().toISOString().split('T')[0],
@@ -83,7 +80,6 @@ export default function Profile() {
     if (!editedUser) return;
 
     try {
-      // Обновляем данные в localStorage
       const users = JSON.parse(localStorage.getItem('users') || '[]');
       const updatedUsers = users.map((u: UserData) => 
         u.id === editedUser.id ? editedUser : u
@@ -91,7 +87,6 @@ export default function Profile() {
       
       localStorage.setItem('users', JSON.stringify(updatedUsers));
       
-      // Обновляем текущего пользователя
       localStorage.setItem('currentUser', JSON.stringify(editedUser));
       handleLogin(editedUser);
       
@@ -201,7 +196,6 @@ export default function Profile() {
   return (
     <div className="min-h-[calc(100vh-68px)] bg-background py-8">
       <div className="container px-4">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold">Профиль</h1>
@@ -249,9 +243,7 @@ export default function Profile() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Основная информация - 2/3 ширины */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Профиль карточка */}
             <Card>
               <CardHeader>
                 <CardTitle>Основная информация</CardTitle>
@@ -380,9 +372,7 @@ export default function Profile() {
             </Card>
           </div>
 
-          {/* Боковая панель - 1/3 ширины */}
           <div className="space-y-6">
-            {/* Действия */}
             <Card>
               <CardHeader>
                 <CardTitle>Действия</CardTitle>
@@ -411,7 +401,6 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            {/* Настройки приватности */}
             <Card>
               <CardHeader>
                 <CardTitle>Приватность</CardTitle>
@@ -438,7 +427,6 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            {/* Опасная зона */}
             <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
               <CardHeader>
                 <CardTitle className="text-red-600 dark:text-red-400">

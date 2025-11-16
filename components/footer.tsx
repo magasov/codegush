@@ -1,4 +1,3 @@
-// components/footer.tsx
 "use client";
 
 import Link from "next/link";
@@ -78,11 +77,9 @@ export default function Footer() {
 
   return (
     <footer className="bg-card border-t">
-      {/* Основной контент футера */}
       <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           
-          {/* Информация о фестивале */}
          <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
@@ -101,7 +98,6 @@ export default function Footer() {
             </p>
             </div>
 
-          {/* Быстрые ссылки по фестивалю */}
           <div>
             <h3 className="font-semibold mb-4 text-lg">Фестиваль</h3>
             <ul className="space-y-3">
@@ -119,7 +115,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Информация о фестивале */}
           <div>
             <h3 className="font-semibold mb-4 text-lg">Информация</h3>
             <ul className="space-y-4">
@@ -139,9 +134,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Поддержка и соцсети */}
           <div>
-            {/* Социальные сети */}
             <div className="space-y-3">
               <p className="text-sm font-medium">Мы в соцсетях</p>
               <div className="flex gap-3">
@@ -169,16 +162,13 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Нижняя часть футера */}
       <div className="border-t bg-muted/30">
         <div className="container py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Копирайт */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>© {currentYear} PaveFest. Все права защищены.</span>
             </div>
 
-            {/* Правовые ссылки */}
             <div className="flex items-center gap-6 text-sm">
               <Link
                 href="/privacy"

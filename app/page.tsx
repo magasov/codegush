@@ -41,7 +41,6 @@ export default function Home() {
 
   return (
     <div className="min-h-[calc(100vh-68px)] bg-background">
-      {/* Hero Section */}
       <section className="relative py-20 lg:py-30">
         <div className="container px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -117,7 +116,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-20 bg-muted/30">
         <div className="container px-4">
           <div className="text-center space-y-4 mb-12">
@@ -149,7 +147,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20">
         <div className="container px-4">
           <Card className="bg-primary text-primary-foreground border-0">

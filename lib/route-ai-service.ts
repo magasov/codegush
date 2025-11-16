@@ -189,7 +189,6 @@ ${eventsText}
     return Math.floor(Math.random() * 25) + 15;
   }
 
-  // Умная генерация маршрутов без AI
   generateSmartRoutes(events: any[], constraints: any): AIGeneratedRoute[] {
     const sortedByPopularity = [...events].sort((a, b) => b.popularity - a.popularity);
     const sortedByDuration = [...events].sort((a, b) => a.duration - b.duration);
@@ -203,7 +202,6 @@ ${eventsText}
   }
 
   private createShortIntensiveRoute(events: any[], constraints: any): AIGeneratedRoute {
-    // Берем 3-4 самых популярных мероприятия
     const selectedEvents = events.slice(0, 4);
     const routeEvents = this.scheduleEvents(selectedEvents, constraints.startTime);
 
@@ -229,7 +227,6 @@ ${eventsText}
   }
 
   private createMediumBalancedRoute(events: any[], constraints: any): AIGeneratedRoute {
-    // Берем 5-7 мероприятий разной длительности
     const mixedEvents = this.selectDiverseEvents(events, 6);
     const routeEvents = this.scheduleEvents(mixedEvents, constraints.startTime);
 
@@ -255,7 +252,6 @@ ${eventsText}
   }
 
   private createFullDayRoute(events: any[], constraints: any): AIGeneratedRoute {
-    // Берем 8-10 мероприятий на весь день
     const fullDayEvents = events.slice(0, 9);
     const routeEvents = this.scheduleEvents(fullDayEvents, constraints.startTime);
 
@@ -282,7 +278,6 @@ ${eventsText}
   }
 
   private selectDiverseEvents(events: any[], count: number) {
-    // Выбираем мероприятия разной длительности и категорий
     const categories = new Set();
     const result = [];
     
@@ -310,7 +305,6 @@ ${eventsText}
         travelTime
       };
 
-      // Обновляем время для следующего события
       const [hours, minutes] = currentTime.split(':').map(Number);
       const totalMinutes = hours * 60 + minutes + event.duration + travelTime;
       const newHours = Math.floor(totalMinutes / 60);
