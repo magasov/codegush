@@ -55,7 +55,7 @@ const events: Event[] = [
     location: "Главная сцена",
     category: "music",
     popularity: 95,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/1.png"
   },
   {
     id: "2",
@@ -67,7 +67,7 @@ const events: Event[] = [
     location: "Палатка №2",
     category: "workshop",
     popularity: 80,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/2.png"
   },
   {
     id: "3",
@@ -79,7 +79,7 @@ const events: Event[] = [
     location: "Лужайка",
     category: "cinema",
     popularity: 85,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/3.png"
   },
   {
     id: "4",
@@ -91,7 +91,7 @@ const events: Event[] = [
     location: "Центральная площадь",
     category: "food",
     popularity: 90,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/4.png"
   },
   {
     id: "5",
@@ -103,7 +103,7 @@ const events: Event[] = [
     location: "Арт-зона",
     category: "art",
     popularity: 75,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/5.png"
   },
   {
     id: "6",
@@ -115,7 +115,7 @@ const events: Event[] = [
     location: "Лужайка",
     category: "sport",
     popularity: 70,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/6.png"
   },
   {
     id: "7",
@@ -127,7 +127,7 @@ const events: Event[] = [
     location: "Танцпол",
     category: "music",
     popularity: 88,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/7.png"
   },
   {
     id: "8",
@@ -139,7 +139,7 @@ const events: Event[] = [
     location: "Творческая мастерская",
     category: "workshop",
     popularity: 72,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/8.png"
   },
   {
     id: "9",
@@ -151,7 +151,7 @@ const events: Event[] = [
     location: "Кулинарная арена",
     category: "food",
     popularity: 92,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/9.png"
   },
   {
     id: "10",
@@ -163,7 +163,7 @@ const events: Event[] = [
     location: "Центральная аллея",
     category: "art",
     popularity: 78,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/10.png"
   },
   {
     id: "11",
@@ -175,7 +175,7 @@ const events: Event[] = [
     location: "Старт у главного входа",
     category: "sport",
     popularity: 65,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/11.png"
   },
   {
     id: "12",
@@ -187,7 +187,7 @@ const events: Event[] = [
     location: "Вечерний амфитеатр",
     category: "cinema",
     popularity: 82,
-    image: "/api/placeholder/400/200"
+    image: "/assets/images/gallery/12.png"
   }
 ];
 
