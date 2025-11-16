@@ -44,7 +44,7 @@ class RouteAI {
     try {
       console.log("Sending request to AI...");
       const response = await this.aiQuery(prompt, {
-        model: "gpt-5-nano",
+        model: "mistral",
         temperature: 0.8,
         system: "Ты эксперт по планированию маршрутов в Москве. Создавай разные варианты маршрутов с разным количеством мероприятий и временем.",
         json_response: false
