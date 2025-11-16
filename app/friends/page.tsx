@@ -118,6 +118,12 @@ export default function FriendsPage() {
       return;
     }
 
+    // Проверяем, нет ли уже друга с таким никнеймом
+    if (friends.some(friend => friend.username === nickname)) {
+      toast.error("Друг с таким никнеймом уже существует");
+      return;
+    }
+
     const newFriend: Friend = {
       id: `friend-${Date.now()}`,
       name,
@@ -130,6 +136,23 @@ export default function FriendsPage() {
     setNewFriendName("");
     setNewFriendNickname("");
     toast.success("Друг добавлен");
+  };
+
+  const handleRemoveFriend = (friendId: string) => {
+    const friendToRemove = friends.find(f => f.id === friendId);
+    if (!friendToRemove) return;
+
+    const updated = friends.filter(friend => friend.id !== friendId);
+    saveFriends(updated);
+    
+    // Также удаляем этого друга из всех групповых маршрутов
+    const updatedRoutes = groupRoutes.map(route => ({
+      ...route,
+      participants: route.participants.filter(p => p.id !== friendId)
+    })).filter(route => route.participants.length > 0); // Удаляем пустые маршруты
+    
+    saveRoutes(updatedRoutes);
+    toast.success(`Друг ${friendToRemove.name} удален`);
   };
 
   const handleCreateGroupRoute = (friend: Friend) => {
@@ -196,10 +219,16 @@ export default function FriendsPage() {
         ...route,
         participants: route.participants.filter((p) => p.id !== friendId),
       };
-    });
+    }).filter(route => route.participants.length > 0); // Удаляем пустые маршруты
 
     saveRoutes(updatedRoutes);
     toast.success("Друг удалён из маршрута");
+  };
+
+  const handleDeleteRoute = (routeId: string) => {
+    const updatedRoutes = groupRoutes.filter(route => route.id !== routeId);
+    saveRoutes(updatedRoutes);
+    toast.success("Маршрут удален");
   };
 
   if (!user) {
@@ -263,7 +292,7 @@ export default function FriendsPage() {
                                 .join("")}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
+                          <div className="flex-1">
                             <div className="font-medium">{friend.name}</div>
                             <div className="text-xs text-muted-foreground">@{friend.username}</div>
                             <div className="mt-1">
@@ -275,6 +304,14 @@ export default function FriendsPage() {
                               </Badge>
                             </div>
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveFriend(friend.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
                         </div>
 
                         {/* Кнопка создания общего маршрута при наведении */}
@@ -339,7 +376,7 @@ export default function FriendsPage() {
                           className="border rounded-xl p-4 bg-card/60 flex flex-col gap-3"
                         >
                           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                            <div>
+                            <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <Route className="h-4 w-4 text-primary" />
                                 <h3 className="font-semibold">{route.name}</h3>
@@ -352,6 +389,13 @@ export default function FriendsPage() {
                               <Badge variant="secondary">
                                 Участников: {route.participants.length}
                               </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteRoute(route.id)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
 
