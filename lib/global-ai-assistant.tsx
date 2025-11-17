@@ -22,7 +22,7 @@ export interface SiteContext {
 }
 
 class GlobalAIAssistant {
-  private baseUrl: string = "https://text.pollinations.ai";
+  private baseUrl: string = "https://text.aillations.ai";
 
   async sendMessage(
     message: string, 
@@ -32,7 +32,7 @@ class GlobalAIAssistant {
     
     try {
       const response = await this.aiQuery(prompt, {
-        model: "gpt-5-nano",
+        model: "mistral",
         temperature: 0.7,
         system: "Ты универсальный помощник для сайта планирования маршрутов. Ты помогаешь пользователям с навигацией по сайту, функционалом, планированием мероприятий, работой в группах, техническими вопросами и всем что связано с сайтом. Будь полезным, дружелюбным и конкретным.",
         json_response: false
