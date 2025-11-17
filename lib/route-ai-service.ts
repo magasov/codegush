@@ -36,7 +36,7 @@ export interface RouteGenerationRequest {
 }
 
 class RouteAI {
-  private baseUrl: string = "https://text.pollinations.ai";
+  private baseUrl: string = "https://text.aillations.ai";
 
   async generateRouteVariants(request: RouteGenerationRequest): Promise<AIGeneratedRoute[]> {
     const prompt = this.buildRoutePrompt(request);
